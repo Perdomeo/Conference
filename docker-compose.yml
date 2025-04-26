@@ -50,7 +50,7 @@ services:
 
   conference_api:
     build:
-      context: ./Perdomeo/app
+      context: ./app
       dockerfile: Dockerfile
     deploy:
       mode: replicated
