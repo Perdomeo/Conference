@@ -23,26 +23,15 @@ jobs:
           ssh-keyscan -H ${HOST_NAME} >> ~/.ssh/known_hosts
 
           ssh -o StrictHostKeyChecking=no -i ~/.ssh/deploy_key ${USER_NAME}@${HOST_NAME} <<EOF
-            # Creamos carpeta si no existe
             mkdir -p /home/ndgserver/tercerCorteActividad/andres-rodriguez
-
-            # Entramos a tu carpeta
             cd /home/ndgserver/tercerCorteActividad/andres-rodriguez
-
-            # Si no existe ya el repo, clonamos
             if [ ! -d "Perdomeo/.git" ]; then
               git clone https://github.com/Perdomeo/Conference.git Perdomeo
             fi
-
-            # Entramos al proyecto
-            cd Perdomeo
-
-            # Actualizamos el proyecto
+            cd Perdomeo  
             git fetch --all
             git reset --hard origin/master
             git pull origin master
-
-            # Levantamos docker compose
             docker compose down
             docker compose up -d --build
           EOF
