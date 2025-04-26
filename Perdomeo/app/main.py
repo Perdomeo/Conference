@@ -22,7 +22,7 @@ app = FastAPI(
     description="API for managing conferences and speakers.",
     contact={
         "name": "Developer Team",
-        "url": "https://github.com/your-repository",
+        "url": "https://github.com/Perdomeo/Conference",
     },
     root_path="/api",
     docs_url="/docs",
