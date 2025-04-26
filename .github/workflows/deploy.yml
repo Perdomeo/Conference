@@ -5,37 +5,29 @@ on:
     branches: [master]
 
 jobs:
-  Deploy:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v2
 
-      - name: SSH Deploy
-        env:
-          PRIVATE_KEY: "${{ secrets.SSH_PRIVATE_KEY }}"
-          HOST_NAME: "${{ secrets.SSH_HOST }}"
-          USER_NAME: "${{ secrets.SSH_USER }}"
-          PROJECT_PATH: "${{ secrets.PROJECT_PATH }}"
-          GIT_REPO: "${{ secrets.GIT_REPO }}"
-        run: |
-          mkdir -p ~/.ssh
-          echo "$PRIVATE_KEY" > ~/.ssh/deploy_key
-          chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -H ${HOST_NAME} >> ~/.ssh/known_hosts
-          
-          ssh -o StrictHostKeyChecking=no -i ~/.ssh/deploy_key ${USER_NAME}@${HOST_NAME} <<EOF
-            if [ ! -d "${PROJECT_PATH}/.git" ]; then
-              mkdir -p \$(dirname ${PROJECT_PATH})
-              git clone ${GIT_REPO} ${PROJECT_PATH}
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            if [ ! -d "${{ secrets.PROJECT_PATH }}/.git" ]; then
+              mkdir -p $(dirname ${{ secrets.PROJECT_PATH }})
+              git clone ${{ secrets.GIT_REPO }} ${{ secrets.PROJECT_PATH }}
             fi
 
-            cd ${PROJECT_PATH}
+            cd ${{ secrets.PROJECT_PATH }}
             git checkout master
             git fetch --all
             git reset --hard origin/master
             git pull origin master
             docker-compose down
             docker-compose up -d --build
-          EOF
