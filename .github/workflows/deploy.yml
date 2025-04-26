@@ -5,29 +5,34 @@ on:
     branches: [master]
 
 jobs:
-  deploy:
+  Deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
-      - name: Deploy via SSH
-        uses: appleboy/ssh-action@v0.1.10
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
-            if [ ! -d "${{ secrets.PROJECT_PATH }}/.git" ]; then
-              mkdir -p $(dirname ${{ secrets.PROJECT_PATH }})
-              git clone ${{ secrets.GIT_REPO }} ${{ secrets.PROJECT_PATH }}
+      - name: SSH Deploy
+        env:
+          PRIVATE_KEY: "${{ secrets.SSH_PRIVATE_KEY }}"
+          HOST_NAME: "${{ secrets.SSH_HOST }}"
+          USER_NAME: "${{ secrets.SSH_USER }}"
+        run: |
+          mkdir -p ~/.ssh
+          echo "$PRIVATE_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H ${HOST_NAME} >> ~/.ssh/known_hosts
+
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/deploy_key ${USER_NAME}@${HOST_NAME} <<EOF
+            if [ ! -d "/home/ndgserver/tercerCorteActividad/.git" ]; then
+              mkdir -p /home/ndgserver/tercerCorteActividad
+              git clone https://github.com/Perdomeo/Conference.git /home/ndgserver/tercerCorteActividad
             fi
 
-            cd ${{ secrets.PROJECT_PATH }}
+            cd /home/ndgserver/tercerCorteActividad
             git checkout master
             git fetch --all
             git reset --hard origin/master
             git pull origin master
-            docker-compose down
-            docker-compose up -d --build
+            docker compose down
+            docker compose up -d --build
+          EOF
