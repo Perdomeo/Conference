@@ -23,7 +23,6 @@ services:
       - MYSQL_DATABASE=${MYSQL_DB}
       - MYSQL_USER=${MYSQL_USER}
       - MYSQL_PASSWORD=${MYSQL_PASSWORD}
-      - DB_HOST=${MYSQL_HOST}
     volumes:
       - mysql_data:/var/lib/mysql
     networks:
@@ -36,7 +35,7 @@ services:
     container_name: adminer
     restart: always
     ports:
-      - 8081:8080
+      - "8081:8080"
     environment:
       - ADMINER_DEFAULT_SERVER=mysql
       - ADMINER_DESIGN=flat
@@ -49,29 +48,20 @@ services:
       - "traefik.http.routers.adminer.entrypoints=web"
 
   conference_api:
-    image: tiangolo/uvicorn-gunicorn-fastapi:python3.10-slim
+    image: tiangolo/uvicorn-gunicorn-fastapi:python3.10
+    container_name: conference_api
     restart: unless-stopped
-    networks:
-      - conference-balancer
+    volumes:
+      - ./Perdomeo/app:/app
     environment:
       - MYSQL_USER=${MYSQL_USER}
       - MYSQL_PASSWORD=${MYSQL_PASSWORD}
       - MYSQL_HOST=${MYSQL_HOST}
       - MYSQL_DB=${MYSQL_DB}
-    volumes:
-      - ./Perdomeo/app:/app
     depends_on:
       - mysql
-    deploy:
-      mode: replicated
-      replicas: 4
-      resources:
-        limits:
-          cpus: '0.75'
-          memory: 1G
-        reservations:
-          cpus: '0.25'
-          memory: 512M
+    networks:
+      - conference-balancer
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.api.rule=PathPrefix(`/api`)"
@@ -85,7 +75,6 @@ services:
 
 networks:
   conference-balancer:
-    name: conference-balancer
     driver: bridge
 
 volumes:
