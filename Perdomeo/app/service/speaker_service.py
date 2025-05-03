@@ -1,6 +1,5 @@
 from sqlalchemy.orm import Session
 from typing import List, Optional
-
 from app.models.speaker import Speaker
 from app.schemas.speaker import SpeakerCreate, SpeakerUpdate
 from app.repositories import speaker_repository

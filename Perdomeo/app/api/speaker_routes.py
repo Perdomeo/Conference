@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
 from app.schemas.speaker import SpeakerCreate, SpeakerUpdate, SpeakerOut
-from app.services import speaker_service
+from app.service.speaker_service import speaker_service
 from app.db.database import get_db
 
 router = APIRouter(
